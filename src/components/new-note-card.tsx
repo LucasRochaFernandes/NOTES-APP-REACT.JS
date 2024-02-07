@@ -1,6 +1,6 @@
 import * as Dialog from '@radix-ui/react-dialog'
 import { X } from 'lucide-react'
-import { ChangeEvent, FormEvent, useState } from 'react'
+import { ChangeEvent, MouseEvent, useState } from 'react'
 import { toast } from 'sonner'
 
 interface NewNoteCardProps {
@@ -9,6 +9,7 @@ interface NewNoteCardProps {
 
 export function NewNoteCard({ onNoteCreated }: NewNoteCardProps) {
   const [isShowingOnboarding, setIsShowingOnboarding] = useState<boolean>(true)
+  const [isRecording, setIsRecording] = useState<boolean>(false)
   const [content, setContent] = useState<string>('')
 
   function handleShowOnboarding() {
@@ -21,12 +22,23 @@ export function NewNoteCard({ onNoteCreated }: NewNoteCardProps) {
     }
   }
 
-  function handleSaveNote(e: FormEvent<HTMLFormElement>) {
+  function handleSaveNote(e: MouseEvent<HTMLButtonElement>) {
     e.preventDefault()
+    if (content === '') {
+      toast.error('Não é possível criar uma nota vazia')
+      return
+    }
     onNoteCreated(content)
     setContent('')
     setIsShowingOnboarding(true)
     toast.success('Nota criado com sucesso')
+  }
+
+  function handleStartRecording() {
+    setIsRecording(true)
+  }
+  function handleStopRecording() {
+    setIsRecording(false)
   }
 
   return (
@@ -45,7 +57,7 @@ export function NewNoteCard({ onNoteCreated }: NewNoteCardProps) {
           <Dialog.Close className="absolute right-0 top-0 bg-slate-800 p-1.5 text-slate-400 hover:text-slate-100">
             <X className="h-5 w-5" />
           </Dialog.Close>
-          <form onSubmit={handleSaveNote} className="flex flex-1 flex-col">
+          <form className="flex flex-1 flex-col">
             <div className="flex flex-1 flex-col gap-3 p-5">
               <span className="text-sm font-medium text-slate-300">
                 Adicionar Nota
@@ -53,11 +65,16 @@ export function NewNoteCard({ onNoteCreated }: NewNoteCardProps) {
               {isShowingOnboarding ? (
                 <p className="text-sm leading-6 text-slate-400">
                   Comece{' '}
-                  <button className="font-medium text-lime-400 hover:underline">
+                  <button
+                    type="button"
+                    className="font-medium text-lime-400 hover:underline"
+                    onClick={handleStartRecording}
+                  >
                     gravando uma nota
                   </button>{' '}
                   em áudio ou em{' '}
                   <button
+                    type="button"
                     onClick={handleShowOnboarding}
                     className="font-medium text-lime-400 hover:underline"
                   >
@@ -73,12 +90,24 @@ export function NewNoteCard({ onNoteCreated }: NewNoteCardProps) {
                 ></textarea>
               )}
             </div>
-            <button
-              type="submit"
-              className="w-full bg-lime-400 py-4 text-center text-sm font-medium text-lime-950 outline-none hover:bg-lime-500"
-            >
-              Salvar Nota
-            </button>
+            {isRecording ? (
+              <button
+                type="button"
+                onClick={handleStopRecording}
+                className="flex w-full items-center justify-center gap-2 bg-slate-900 py-4 text-center text-sm font-medium text-slate-300 outline-none hover:text-slate-100"
+              >
+                <div className="size-3 animate-pulse rounded-full bg-red-500" />
+                Gravando! (clique p/ interromper)
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={handleSaveNote}
+                className="w-full bg-lime-400 py-4 text-center text-sm font-medium text-lime-950 outline-none hover:bg-lime-500"
+              >
+                Salvar Nota
+              </button>
+            )}
           </form>
         </Dialog.Content>
       </Dialog.Portal>
